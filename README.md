@@ -16,7 +16,8 @@ $ gcc -w -o run creatTest.c -std=c11; ./run
 ```bash
 $ g++ -w -o run sort.cpp -std=c++11; ./run
 ```
-# Run time
+# Memory
 Reducing the value of CUR\_MIN\_SIZE to reduce memory usage.
 
+# Image
 <img src="http://i.imgur.com/z6cwsA6.png?1">
