@@ -3,7 +3,7 @@
 #include "string.h"
 #include "time.h"
 
-#define LENGTH 10000
+#define LENGTH 1000000
 #define MIN "-2147483648"
 #define MAX "2147483647"
 
