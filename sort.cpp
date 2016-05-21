@@ -7,7 +7,7 @@ using namespace std;
 #define SIZE 1000000
 #define MIN -2147483648
 #define MAX 2147483647
-#define CUR_MIN_SIZE 1000
+#define CUR_MIN_SIZE 5000
 
 typedef struct _Node
 {
@@ -102,8 +102,18 @@ int find_value(vector<Node> cur_min, long target)
 
 int existed(vector<Node> cur_min, long target)
 {
-	// Cai tien bang tim kiem nhi phan
-	for(int i = 0; i < cur_min.size(); i++)
-		if(target == cur_min[i].value) return i;
+	int l = 0, r = cur_min.size() - 1;
+	int cur = (l + r) / 2;
+	while(l <= r){
+		if(cur_min[cur].value == target) return cur;
+		else if(cur_min[cur].value > target){
+			r = cur - 1;
+			cur = (l + r) / 2;
+		}
+		else{
+			l = cur + 1;
+			cur = (l + r) / 2;
+		}
+	}
 	return -1;
 }
