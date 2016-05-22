@@ -57,8 +57,7 @@ int main()
 /**************************************************************/
 bool input(char *fileName, vector<Node> &cur_min, long &min)
 {
-	fstream f;
-	f.open(fileName, fstream::in);
+	fstream f (fileName, fstream::in);
 
 	long tmp;
 	long count = 0;
@@ -89,8 +88,7 @@ bool input(char *fileName, vector<Node> &cur_min, long &min)
 
 void output(char *fileName, vector<Node> cur_min)
 {
-	ofstream f;
-	f.open(fileName, ofstream::app);
+	ofstream f (fileName, ofstream::app);
 
 	for(int i = 0; i < cur_min.size(); i++)
 		for(long j = 0; j < cur_min[i].count; j++)
@@ -107,9 +105,22 @@ void insert(vector<Node> &cur_min, long newValue)
 
 int find_value(vector<Node> cur_min, long target)
 {
-	int res = 0;
-	for(res = 0; res < cur_min.size() && cur_min[res].value < target; res++);
-	return res;
+	if(cur_min.size() == 0) return 0;
+
+	int l = 0, r = cur_min.size() - 1;
+	int cur = (l + r) / 2;
+	while(l <= r){
+		if(cur_min[cur].value > target){
+			r = cur - 1;
+			cur = (l + r) / 2;
+		}
+		else{
+			l = cur + 1;
+			cur = (l + r) / 2;
+		}
+	}
+	if(target < cur_min[cur].value) return cur;
+	else return cur + 1;
 }
 
 int existed(vector<Node> cur_min, long target)
