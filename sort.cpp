@@ -1,143 +1,89 @@
 #include "iostream"
-#include "vector"
 #include "fstream"
+#include "algorithm"
+
+#include "string.h"
+
+#define SIZE 1000000
+#define HALF_SIZE SIZE / 2
 
 using namespace std;
 
-#define SIZE 1000000	// number of interger
-#define MIN -2147483648	// min signed 32-bit number
-#define MAX 2147483647	// max signed 32-bit number
-#define CUR_MIN_SIZE 5000	// max size of vector cur_min
+void msort(char *file_in, char *file_out);
+void merge(char *file_tmp, long arr[], char *file_out);
+void remove_file(char *file_name);
 
-typedef struct _Node
-{
-	long value;
-	long count;	// Number of integer equal 'value'
-}Node;
-
-/*************************** APIs ***************************/
-// Input data from file to vector cur_min, if sizeof cur_min > 0 return true else return false
-bool input(char *fileName, vector<Node> &cur_min, long &min);
-// Write data from vector cur_min to file
-void output(char *fileName, vector<Node> cur_min);
-// Insert element to vector cur_min
-void insert(vector<Node> &cur_min, long newValue);
-// Return index to insert target into vector cur_min, if not existed return -1
-int find_value(vector<Node> cur_min, long target);
-// Return index of target in vector cur_min, if not existed return -1
-int existed(vector<Node> cur_min, long target);
-
-/*************************** MAIN ***************************/
 int main()
 {
-	long min = MIN;
-	char *file_in = "input.txt", *file_out = "output.txt";
-
-	// Write all element equal MIN in file input to file output
-	fstream fin (file_in, fstream::in);
-	ofstream fout (file_out, ofstream::trunc);
-	for(long i = 0; i < SIZE; i++){
-		fin >> min;
-		if(min == MIN) fout << MIN << " ";
-	}
-	fin.close();
-	fout.close();
-
-	// Resolve all element larger MIN
-	min = MIN;
-	vector<Node> cur_min(0);
-	while(1){
-		// if sizeof cur_min equal 0 then break of loop
-		if(!input("input.txt", cur_min, min)) break;
-		output("output.txt", cur_min);
-		cur_min.clear();
-	}
+	msort("input.txt", "output.txt");
+	return 0;
 }
 
-/**************************************************************/
-bool input(char *fileName, vector<Node> &cur_min, long &min)
+void msort(char *file_in, char *file_out)
 {
-	fstream f (fileName, fstream::in);
+	fstream fin (file_in, fstream::in);
+
+	char *file_tmp = "tmp~.txt";
+	ofstream ftmp (file_tmp, ofstream::trunc);
 
 	long tmp;
-	long count = 0;
-	while(count < SIZE){
-		f >> tmp;
 
-		int target = existed(cur_min, tmp);
-		// if target is existing
-		if(target != -1) cur_min[target].count++;
-		// 
-		else if(cur_min.size() < CUR_MIN_SIZE && tmp > min)
-			cur_min.insert(cur_min.begin() + find_value(cur_min, tmp), {tmp, 1});
-		// if tmp < max element of cur_min remove max element, insert tmp to cur_min
-		else if(tmp > min && tmp < cur_min[cur_min.size() - 1].value)
-			insert(cur_min, tmp);
-
-		count++;
+	long arr[HALF_SIZE];
+	// Input, sort and write to file
+	for(long i = 0; i < HALF_SIZE; i++){
+		fin >> tmp;
+		arr[i] = tmp;
 	}
+	sort(arr, arr + HALF_SIZE);
+	for(long i = 0; i < HALF_SIZE; i++)
+		ftmp << arr[i] << " ";
+	fin.close();
 
-	f.close();
-
-	if(cur_min.size()){
-		min = cur_min[cur_min.size() - 1].value;
-		return true;
+	// Input and sort
+	// HALF_SIZE = size - HALF_SIZE;
+	for(long i = 0; i < HALF_SIZE; i++){
+		fin >> tmp;
+		arr[i] = tmp;
 	}
-	else return false;
+	sort(arr, arr + HALF_SIZE);
+		
+	merge(file_tmp, arr, file_out);
+	remove_file(file_tmp);
 }
 
-void output(char *fileName, vector<Node> cur_min)
+void merge(char *file_tmp, long arr[], char *file_out)
 {
-	ofstream f (fileName, ofstream::app);
+	fstream ftmp (file_tmp, fstream::in);
+	ofstream fout (file_out, ofstream::trunc);
 
-	for(int i = 0; i < cur_min.size(); i++)
-		for(long j = 0; j < cur_min[i].count; j++)
-			f << cur_min[i].value << " ";
-
-	f.close();
-}
-
-void insert(vector<Node> &cur_min, long newValue)
-{
-	cur_min.pop_back();
-	cur_min.insert(cur_min.begin() + find_value(cur_min, newValue), {newValue, 1});
-}
-
-int find_value(vector<Node> cur_min, long target)
-{
-	if(cur_min.size() == 0) return 0;
-
-	int l = 0, r = cur_min.size() - 1;
-	int cur = (l + r) / 2;
-	while(l <= r){
-		if(cur_min[cur].value > target){
-			r = cur - 1;
-			cur = (l + r) / 2;
+	long tmp1;
+	long count = 0, size_file = HALF_SIZE;
+	ftmp >> tmp1;
+	while(size_file > 0 && count < HALF_SIZE){
+		if(tmp1 < arr[count]){
+			fout << tmp1 << " ";
+			ftmp >> tmp1;
+			size_file--;
 		}
 		else{
-			l = cur + 1;
-			cur = (l + r) / 2;
+			fout << arr[count] << " ";
+			count++;
 		}
 	}
-	if(target < cur_min[cur].value) return cur;
-	else return cur + 1;
+	while(size_file-- > 0){
+		fout << tmp1 << " ";
+		ftmp >> tmp1;
+	}
+	while(count < HALF_SIZE)
+		fout << arr[count++] << " ";
+
+	ftmp.close();
+	fout.close();
 }
 
-int existed(vector<Node> cur_min, long target)
+void remove_file(char *file_name)
 {
-	// Binary search
-	int l = 0, r = cur_min.size() - 1;
-	int cur = (l + r) / 2;
-	while(l <= r){
-		if(cur_min[cur].value == target) return cur;
-		else if(cur_min[cur].value > target){
-			r = cur - 1;
-			cur = (l + r) / 2;
-		}
-		else{
-			l = cur + 1;
-			cur = (l + r) / 2;
-		}
-	}
-	return -1;
+	char tmp[20] = "rm ";
+	strcat(tmp, file_name);
+	system(tmp);
 }

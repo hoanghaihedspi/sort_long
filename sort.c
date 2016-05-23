@@ -5,14 +5,13 @@
 #define SIZE 1000000	// Number of intergers
 
 void sort(char *file_in, char *file_out, long size);
-void merge_file(char *file_name1, long size1, char *file_name2, long size2, char *file_out);
+void merge(char *file_name1, long size_file, long arr[], long size_arr, char *file_out);
 void remove_file(char *file_name);
 int long_compare(const void *a, const void *b);
 
 int main()
 {
 	sort("input.txt", "output.txt", SIZE);
-	// merge_file("1.txt", 3, "2.txt", 3, "output.txt");
 	return 0;
 }
 
@@ -21,70 +20,67 @@ void sort(char *file_in, char *file_out, long size)
 	long t = size / 2, tmp;
 	long *arr = (long*)malloc((t + 10) * sizeof(long));
 
-	char *ftmp0 = "tmp0~.txt", *ftmp1 = "tmp1~.txt";
+	char *file_tmp = "tmp~.txt";
 	FILE *fin = fopen(file_in, "r");
-	FILE *ftmp[2];
-	ftmp[0] = fopen(ftmp0, "w");
-	ftmp[1] = fopen(ftmp1, "w");
-
-	// Read data from file by 2 times
-	for(int times = 0; times < 2; times++){
-		// Input the half of file data to array 'arr'
-		for(long i = 0; i < t; i++){
-			fscanf(fin, "%ld", &tmp);
-			arr[i] = tmp;
-		}
-		// Sort array 'arr' by 'quick sort'
-		qsort(arr, t, sizeof(long), long_compare);
-		for(long i = 0; i < t; i++)
-			fprintf(ftmp[times], "%ld ", arr[i]);
-
-		t = size - t;
+	FILE *ftmp = fopen(file_tmp, "w");
+	if(!fin || !ftmp){ printf("Error open file!\n"); exit(1); }
+	
+	// Input the half of file data to array 'arr'
+	for(long i = 0; i < t; i++){
+		fscanf(fin, "%ld", &tmp);
+		arr[i] = tmp;
 	}
+	// Sort array 'arr' and write to file.
+	qsort(arr, t, sizeof(long), long_compare);
+	for(long i = 0; i < t; i++)
+		fprintf(ftmp, "%ld ", arr[i]);
+	fclose(ftmp);
 
-	free(arr);
+	// Input the other half of file data to array 'arr'
+	for(long i = 0; i < size - t; i++){
+		fscanf(fin, "%ld", &tmp);
+		arr[i] = tmp;
+	}
+	// Sort array 'arr'
+	qsort(arr, t, sizeof(long), long_compare);
+
 	fclose(fin);
-	fclose(ftmp[0]);
-	fclose(ftmp[1]);
 
-	merge_file(ftmp0, t, ftmp1, size - t, file_out);
+	merge(file_tmp, t, arr, size - t, file_out);
+	free(arr);
 }
 
-void merge_file(char *file_name1, long size1, char *file_name2, long size2, char *file_out)
+void merge(char *file_tmp, long size_file, long arr[], long size_arr, char *file_out)
 {
-	FILE *f = fopen(file_out, "w");
-	FILE *f1 = fopen(file_name1, "r");
-	FILE *f2 = fopen(file_name2, "r");
-	if(!f || !f1 || !f2){ printf("Error open file!\n"); exit(1); }
+	FILE *fout = fopen(file_out, "w");
+	FILE *ftmp = fopen(file_tmp, "r");
+	if(!fout || !ftmp){ printf("Error open file!\n"); exit(1); }
 
-	long tmp1, tmp2;
+	long tmp;
+	long count = 0;
 
-	fscanf(f1, "%ld", &tmp1);
-	fscanf(f2, "%ld", &tmp2);
-	while(size1 > 0 && size2 > 0){
-		if(tmp1 < tmp2){
-			fprintf(f, "%ld ", tmp1);
-			fscanf(f1, "%ld", &tmp1);
-			size1--;
+	fscanf(ftmp, "%ld", &tmp);
+	while(size_file > 0 && count < size_arr){
+		if(tmp < arr[count]){
+			fprintf(fout, "%ld ", tmp);
+			fscanf(ftmp, "%ld", &tmp);
+			size_file--;
 		}
 		else{
-			fprintf(f, "%ld ", tmp2);
-			fscanf(f2, "%ld", &tmp2);
-			size2--;
+			fprintf(fout, "%ld ", arr[count]);
+			count++;
 		}
 	}
-	while(size1-- > 0){
-		fprintf(f, "%ld ", tmp1);
-		fscanf(f1, "%ld", &tmp1);
+	while(size_file-- > 0){
+		fprintf(fout, "%ld ", tmp);
+		fscanf(ftmp, "%ld", &tmp);
 	}
-	while(size2-- > 0){
-		fprintf(f, "%ld ", tmp2);
-		fscanf(f2, "%ld", &tmp2);
-	}
+	while(count < size_arr)
+		fprintf(fout, "%ld ", arr[count++]);
 	
-	fclose(f); fclose(f1); fclose(f2);
-	remove_file(file_name1);
-	remove_file(file_name2);
+	fclose(fout);
+	fclose(ftmp);
+	remove_file(file_tmp);
 }
 
 void remove_file(char *file_name)
