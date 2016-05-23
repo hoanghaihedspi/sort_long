@@ -11,6 +11,7 @@ int main()
 {
 	FILE *f;
 	f = fopen("input.txt", "w");
+	fprintf(f, "%ld\n", LENGTH);
 
 	long length = 0;
 	char *num = NULL, num_length = 0;
