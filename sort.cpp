@@ -14,7 +14,6 @@ void remove_file(char *file_name);
 int main()
 {
 	msort("input.txt", "output.txt");
-	int i; cin >> i;
 	return 0;
 }
 
@@ -31,8 +30,9 @@ void msort(char *file_in, char *file_out)
 
 	long tmp;
 	long size_file = size / 3;
+	long size_arr = size - 2 * size_file;
 
-	long *arr = new long[size_file];
+	long *arr = new long[size_arr];
 	for(int times = 0; times < 2; times++){
 		// Input 1/3 of file data to array 'arr'
 		for(long i = 0; i < size_file; i++){
@@ -45,11 +45,8 @@ void msort(char *file_in, char *file_out)
 			ftmp[times] << arr[i] << " ";
 		ftmp[times].close();
 	}
-	delete[] arr;
 
 	// Input the other 1/3 of file data to array 'arr'
-	long size_arr = size - 2 * size_file;
-	arr = new long[size_arr];
 	for(long i = 0; i < size_arr; i++){
 		fin >> tmp;
 		arr[i] = tmp;
@@ -59,6 +56,7 @@ void msort(char *file_in, char *file_out)
 	char *file_tmp = "tmp~.txt";
 	merge_file(file_tmp0, size_file, file_tmp1, size_file, file_tmp);
 	merge(file_tmp, size - size_arr, arr, size_arr, file_out);
+// int i; cin >> i;
 	delete[] arr;
 }
 
